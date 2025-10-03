@@ -65,7 +65,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           query_embedding: queryEmbedding,
-          match_count: 8,
+          match_count: 12,
           filter: { source: '../dataset/human-nutrition-text.pdf' },
         }),
       }
@@ -95,14 +95,15 @@ serve(async (req) => {
     // 4. Generate answer using Gemini
     console.log('Generating answer with Gemini...');
     const systemPrompt = 
-      "You are a strict RAG assistant for a nutrition document. Answer ONLY using the CONTEXT provided below. " +
-      "If the answer is not in the context, say: 'I couldn't find this in the provided document.' " +
-      "Always cite sources using [1], [2], etc., and mention page numbers when making claims.";
+      "You are a RAG assistant for a human nutrition textbook. Answer questions using ONLY the CONTEXT provided below. " +
+      "If the context contains relevant information, synthesize a clear answer from it. " +
+      "If the context doesn't contain enough information to answer the question, say: 'I couldn't find this in the provided document.' " +
+      "ALWAYS cite your sources using [1], [2], etc. and include page numbers (e.g., 'p. 46') when making claims.";
 
     const userMessage = `QUESTION: ${message}\n\nCONTEXT:\n${context}`;
 
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
