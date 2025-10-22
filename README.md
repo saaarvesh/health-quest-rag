@@ -34,20 +34,7 @@ This chatbot can answer domain-specific nutrition questions, cite relevant textb
 
 Below is the high-level flow of how the chatbot processes user queries and retrieves knowledge.
 
-```mermaid
-graph TD
-    A[User Query] --> B[Generate Query Embedding: BAAI/bge-small-en-v1.5]
-    B --> C[Vector Search: Supabase pgvector]
-    C --> D{Similarity > 0.3?}
-    D -->|Yes| E[Retrieve Relevant Context + Page Numbers]
-    D -->|No| F[Use General Knowledge Mode]
-    E --> G[Build Prompt + Context + Query]
-    F --> H[Build Prompt + Query Only]
-    G --> I[Generate Response: Gemini 2.5 Flash]
-    H --> I
-    I --> J[Return Answer + Citations]
-    J --> K[Render in Chat UI: Clickable Citations]
-```
+![RAG Architecture](.\health-quest-rag\readme_img\rag-architecture.svg)
 
 ---
 
