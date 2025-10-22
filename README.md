@@ -1,249 +1,218 @@
-# RAG Chatbot - Human Nutrition Assistant
-
-## 🚀 Live Application
-
-**Published URL**: https://health-quest-rag.lovable.app/
-
-**Lovable Project**: https://lovable.dev/projects/3775387e-479a-4992-87f1-5437114d6b68
-
-## 📋 Project Overview
-
-This is a **Retrieval-Augmented Generation (RAG)** chatbot application specialized in human nutrition. The system combines document retrieval with AI generation to provide accurate, context-aware responses with clickable citations.
-
-### What This Application Does
-
-- **Document Q&A**: Answers questions based on a human nutrition textbook PDF
-- **Semantic Search**: Uses vector embeddings to find relevant document chunks
-- **Smart Responses**: Combines retrieved context with AI knowledge
-- **Citation System**: Provides clickable citations with source text, page numbers, and similarity scores
-- **Conversational AI**: Handles casual conversations and greetings naturally
-- **Fallback Knowledge**: Uses AI's pre-trained knowledge when document context isn't relevant
-
-## 🤖 AI Models Used
-
-### 1. **Embedding Model**: BAAI/bge-small-en-v1.5
-- **Provider**: Hugging Face
-- **Purpose**: Converts user queries and document chunks into vector embeddings
-- **Dimensions**: 384-dimensional vectors
-- **Used for**: Semantic similarity search in vector database
-
-### 2. **Generation Model**: Gemini 2.5 Flash
-- **Provider**: Google
-- **Purpose**: Generates natural language responses based on retrieved context
-- **Features**: 
-  - Multimodal capabilities
-  - Large context window
-  - Fast inference
-  - Temperature: 0.2 (for consistent, factual responses)
-
-## 🏗️ RAG Pipeline Architecture
-
-<lov-mermaid>
-graph TB
-    A[User Query] --> B[Edge Function: rag-chat]
-    B --> C[Generate Query Embedding<br/>BAAI/bge-small-en-v1.5<br/>Hugging Face API]
-    C --> D[Vector Search<br/>Supabase pgvector]
-    D --> E{Similarity > 0.3?}
-    
-    E -->|Yes - Relevant Context| F[Format Context<br/>with Page Numbers]
-    E -->|No - Not Relevant| G[Use General Knowledge Mode]
-    
-    F --> H[Build System Prompt<br/>+ Context + User Query]
-    G --> I[Build System Prompt<br/>+ User Query Only]
-    
-    H --> J[Generate Response<br/>Gemini 2.5 Flash]
-    I --> J
-    
-    J --> K[Return Answer<br/>+ Citation Sources]
-    K --> L[Frontend Rendering]
-    L --> M[Parse Citations [1], [2]]
-    M --> N[Display Clickable Citations]
-    
-    style A fill:#e1f5ff
-    style C fill:#fff3cd
-    style D fill:#d4edda
-    style J fill:#f8d7da
-    style N fill:#d1ecf1
-</lov-mermaid>
-
-## 🔧 Technical Stack
-
-### Frontend
-- **React 18** - UI framework
-- **TypeScript** - Type-safe development
-- **Tailwind CSS** - Styling
-- **shadcn/ui** - UI component library
-- **Vite** - Build tool
-
-### Backend
-- **Supabase** - Backend-as-a-Service
-  - PostgreSQL database with pgvector extension
-  - Edge Functions (Deno runtime)
-  - Vector similarity search
-- **Hugging Face API** - Embedding generation
-- **Google Gemini API** - Text generation
-
-### Key Features
-
-#### Vector Database
-- **Table**: `chunks`
-- **Columns**: 
-  - `content`: Text content
-  - `embedding`: 384-dim vector
-  - `metadata`: JSON (page, source)
-  - `doc_id`: Document identifier
-  - `chunk_index`: Position in document
-- **Function**: `match_documents()` - Cosine similarity search
-
-#### Citation System
-- Extracts `[1]`, `[2]`, etc. from AI responses
-- Maps citation numbers to source chunks
-- Shows popup with:
-  - Source text content
-  - Page number
-  - Similarity score
-  - Document reference
-
-#### Smart Context Handling
-- **Threshold**: 0.3 similarity score
-- **Above threshold**: Uses document context + citations
-- **Below threshold**: Falls back to general AI knowledge
-- **Match count**: Retrieves top 12 similar chunks
-
-## 📁 Project Structure
-
-```
-.
-├── src/
-│   ├── components/
-│   │   ├── ChatInterface.tsx      # Main chat UI
-│   │   ├── ChatMessage.tsx        # Message rendering with citations
-│   │   └── CitationPopup.tsx      # Citation detail modal
-│   ├── pages/
-│   │   └── Index.tsx              # Home page
-│   └── integrations/
-│       └── supabase/
-│           └── client.ts          # Supabase client
-├── supabase/
-│   └── functions/
-│       └── rag-chat/
-│           └── index.ts           # RAG pipeline edge function
-└── README.md
-```
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js & npm installed ([install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating))
-- Supabase account
-- Hugging Face API key
-- Google Gemini API key
-
-### Installation
-
-1. **Clone the repository**
-```bash
-git clone <YOUR_GIT_URL>
-cd <YOUR_PROJECT_NAME>
-```
-
-2. **Install dependencies**
-```bash
-npm install
-```
-
-3. **Set up environment variables**
-```bash
-# Add to .env
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_key
-```
-
-4. **Configure Supabase secrets**
-- `HUGGINGFACE_API_KEY`
-- `GEMINI_API_KEY`
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-
-5. **Start development server**
-```bash
-npm run dev
-```
-
-## 📊 How It Works
-
-### 1. Document Ingestion (Preprocessing)
-- PDF documents are chunked into smaller segments
-- Each chunk is embedded using BAAI/bge-small-en-v1.5
-- Embeddings stored in Supabase with metadata (page, source)
-
-### 2. Query Processing
-- User sends a question
-- Query is embedded using the same model
-- Vector similarity search finds top 12 relevant chunks
-
-### 3. Context Augmentation
-- If similarity > 0.3: Build context from chunks with page numbers
-- System prompt instructs AI to cite sources as `[1]`, `[2]`, etc.
-- Full conversation context passed to Gemini
-
-### 4. Response Generation
-- Gemini generates response with citations
-- Frontend parses citation markers
-- Clickable citations linked to source chunks
-
-### 5. Citation Display
-- Click `[1]` → Opens popup with:
-  - Full source text
-  - Page number
-  - Similarity score
-  - Document filename
-
-## 🎨 Features
-
-- ✅ Semantic search with vector embeddings
-- ✅ Context-aware responses with citations
-- ✅ Clickable source references
-- ✅ Fallback to general AI knowledge
-- ✅ Natural conversation handling
-- ✅ Real-time chat interface
-- ✅ Clean, responsive UI
-- ✅ Supabase edge function backend
-
-## 🛠️ Development
-
-### Edit with Lovable
-Visit the [Lovable Project](https://lovable.dev/projects/3775387e-479a-4992-87f1-5437114d6b68) and start prompting.
-
-### Edit with Your IDE
-Make changes locally and push to the repository. Changes will sync with Lovable automatically.
-
-### Deploy
-Open [Lovable](https://lovable.dev/projects/3775387e-479a-4992-87f1-5437114d6b68) and click **Share → Publish**.
-
-## 📚 Technologies Used
-
-- **Vite** - Build tool
-- **TypeScript** - Type safety
-- **React** - UI framework
-- **shadcn-ui** - Component library
-- **Tailwind CSS** - Styling
-- **Supabase** - Backend & database
-- **PostgreSQL + pgvector** - Vector database
-- **Hugging Face** - Embedding API
-- **Google Gemini** - LLM API
-
-## 📖 Learn More
-
-- [Lovable Documentation](https://docs.lovable.dev)
-- [Supabase Documentation](https://supabase.com/docs)
-- [pgvector Documentation](https://github.com/pgvector/pgvector)
-- [RAG Overview](https://www.pinecone.io/learn/retrieval-augmented-generation/)
-
-## 🤝 Contributing
-
-This project is built with Lovable. Feel free to fork and customize for your needs!
+# 🧠 RAG Chatbot – Human Nutrition Assistant  
+*A complete RAG pipeline and web application built entirely from scratch*
 
 ---
 
-**Built with ❤️ using Lovable**
+## 📘 Project Description
+
+This project is a **Retrieval-Augmented Generation (RAG) Chatbot** focused on **human nutrition**.  
+Unlike many projects built with LangChain or LangGraph, this system was **engineered completely from scratch**, implementing every RAG component manually — from chunking, embedding, vector search, and response generation.
+
+Key highlights of this project:
+
+- ✅ **Custom-built RAG pipeline** — no LangChain, no LangGraph  
+- 🧩 **Chunking strategies implemented from scratch** — experimented with sentence-based, paragraph-based, and hybrid chunking  
+- 🧠 **PDF ingestion & preprocessing** using PyMuPDF  
+- 🗄️ **Vector database** implemented via **Supabase + pgvector**  
+- ⚙️ **Custom SQL similarity function** for efficient document retrieval  
+- 🧬 **Embeddings** using `BAAI/bge-small-en-v1.5`  
+- 💬 **Response generation** powered by **Google Gemini 2.5 Flash**  
+- 🌐 **Web application UI** built using **Lovable.dev** with React + Supabase Edge Functions  
+
+This chatbot can answer domain-specific nutrition questions, cite relevant textbook content, and gracefully fallback to general AI knowledge when needed.
+
+---
+
+## 🚀 Live Application
+
+- **🌍 Published App**: [https://health-quest-rag.lovable.app/](https://health-quest-rag.lovable.app/)  
+- **🧱 Lovable Project**: [https://lovable.dev/projects/3775387e-479a-4992-87f1-5437114d6b68](https://lovable.dev/projects/3775387e-479a-4992-87f1-5437114d6b68)
+
+---
+
+## 🧩 RAG Architecture Overview
+
+Below is the high-level flow of how the chatbot processes user queries and retrieves knowledge.
+
+```mermaid
+graph TD
+    A[User Query] --> B[Generate Query Embedding: BAAI/bge-small-en-v1.5]
+    B --> C[Vector Search: Supabase pgvector]
+    C --> D{Similarity > 0.3?}
+    D -->|Yes| E[Retrieve Relevant Context + Page Numbers]
+    D -->|No| F[Use General Knowledge Mode]
+    E --> G[Build Prompt + Context + Query]
+    F --> H[Build Prompt + Query Only]
+    G --> I[Generate Response: Gemini 2.5 Flash]
+    H --> I
+    I --> J[Return Answer + Citations]
+    J --> K[Render in Chat UI: Clickable Citations]
+```
+
+---
+
+## 🧱 Core Components
+
+### 1. **PDF Ingestion & Chunking**
+- Built **custom chunking functions** using regex and token length control (via `tiktoken`).
+- Implemented multiple chunking strategies:
+  - Sentence-based (20 sentences + overlap)
+  - Token-capped (max 1300 tokens)
+  - Hybrid strategies tested for coherence
+- Stored chunk metadata: `page`, `source`, and `chunk_index`.
+
+### 2. **Embeddings**
+- Model: `BAAI/bge-small-en-v1.5` (384 dimensions)
+- Generated locally via `sentence-transformers` for efficiency.
+- Stored directly in Supabase table `chunks`.
+
+### 3. **Vector Database**
+- **Supabase (PostgreSQL + pgvector)** hosts embeddings and metadata.
+- Created a custom table:
+  ```sql
+  CREATE TABLE chunks (
+    id BIGSERIAL PRIMARY KEY,
+    doc_id TEXT,
+    chunk_index INT,
+    content TEXT,
+    metadata JSONB,
+    embedding VECTOR(384)
+  );
+  ```
+- Added a **cosine similarity index** using `ivfflat`.
+- Defined a SQL function `match_documents()` for fast top-k retrieval.
+
+### 4. **Retrieval & Ranking**
+- User query embedded using same model.
+- Compared against stored embeddings using cosine similarity.
+- Returned top 12 chunks (similarity > 0.3 threshold).
+
+### 5. **Response Generation**
+- Used **Google Gemini 2.5 Flash** for text generation.
+- Prompted with system context and retrieved chunks.
+- Added inline citations like `[1]`, `[2]`, etc.
+
+### 6. **Citation System**
+- Maps citations to actual document chunks.
+- Displays:
+  - Source text snippet
+  - Page number
+  - Similarity score
+- Hover/click to view references in popup modal.
+
+---
+
+## 🧰 Tech Stack Summary
+
+| Layer | Technology | Purpose |
+|-------|-------------|----------|
+| **Frontend** | React 18, TypeScript, Tailwind, shadcn/ui, Vite | Chat UI, citation rendering |
+| **Backend** | Supabase Edge Functions (Deno) | RAG pipeline execution |
+| **Database** | Supabase PostgreSQL + pgvector | Vector search & metadata |
+| **Embeddings** | SentenceTransformer (BAAI/bge-small-en-v1.5) | Text & query vectorization |
+| **LLM** | Google Gemini 2.5 Flash | Response generation |
+| **PDF Parsing** | PyMuPDF | Text extraction & cleaning |
+| **Orchestration** | Custom Python pipeline | Full RAG flow built manually |
+
+---
+
+## 🧮 RAG Pipeline Summary
+
+| Stage | Description |
+|--------|--------------|
+| **1. Ingestion** | PDF parsed → cleaned → chunked |
+| **2. Embedding** | Each chunk encoded into 384-dim vectors |
+| **3. Storage** | Stored in Supabase `chunks` table |
+| **4. Query** | User question → embedded → vector search |
+| **5. Retrieval** | Top matches fetched via SQL cosine similarity |
+| **6. Generation** | Context + query → Gemini LLM response |
+| **7. Citation Display** | Links back to document chunks |
+
+---
+
+## ⚙️ Project Structure
+
+```
+.
+├── ingest.py                  # PDF → chunks → embeddings → Supabase
+├── supabase/
+│   ├── schema.sql             # pgvector + match_documents function
+│   └── functions/
+│       └── rag-chat/
+│           └── index.ts       # Edge Function RAG pipeline
+├── src/
+│   ├── components/
+│   │   ├── ChatInterface.tsx
+│   │   ├── ChatMessage.tsx
+│   │   └── CitationPopup.tsx
+│   ├── pages/
+│   │   └── Index.tsx
+│   └── integrations/
+│       └── supabase/client.ts
+└── README.md
+```
+
+---
+
+## 🧠 Models Used
+
+| Model | Purpose | Provider |
+|--------|----------|-----------|
+| **BAAI/bge-small-en-v1.5** | Embeddings (384 dims) | Hugging Face |
+| **Gemini 2.5 Flash** | Response generation | Google |
+
+---
+
+## 🧪 How to Run Locally
+
+### Prerequisites
+- Node.js & npm  
+- Python 3.10+  
+- Supabase account  
+- Hugging Face & Gemini API keys
+
+### Steps
+```bash
+# Clone the repo
+git clone <YOUR_GIT_URL>
+cd RAG-Nutrition-Chatbot
+
+# Install frontend deps
+npm install
+
+# Run frontend
+npm run dev
+
+# (Optional) Run ingestion
+pip install -r requirements.txt
+python ingest.py
+```
+
+Add your credentials to `.env`:
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_key
+HUGGINGFACE_API_KEY=your_hf_key
+GEMINI_API_KEY=your_gemini_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_key
+```
+
+---
+
+## 📚 References
+
+- [Supabase Documentation](https://supabase.com/docs)  
+- [pgvector Extension](https://github.com/pgvector/pgvector)  
+- [Sentence Transformers](https://www.sbert.net/)  
+- [Gemini API Overview](https://ai.google.dev/)  
+- [RAG Concept Overview](https://www.pinecone.io/learn/retrieval-augmented-generation/)
+
+---
+
+## 💡 Credits
+
+Built entirely **from scratch** by implementing a full RAG pipeline manually,  
+including chunking, embedding, retrieval, and generation — then deployed as a full-stack web app via **Lovable.dev**.
+
+> **Built with ❤️ — RAG Nutrition Chatbot (2025)**  
+> © Developed and designed by [Sarvesh Purohit]
