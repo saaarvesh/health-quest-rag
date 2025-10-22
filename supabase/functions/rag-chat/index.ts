@@ -77,30 +77,40 @@ serve(async (req) => {
 
     const chunks = await supabaseResponse.json();
 
-    if (!chunks || chunks.length === 0) {
-      return new Response(
-        JSON.stringify({
-          answer: "I couldn't find relevant information in the nutrition document. Try rephrasing your question.",
-          sources: [],
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // 3. Determine if we have relevant context (similarity threshold)
+    const relevantChunks = chunks.filter((c: any) => c.similarity > 0.3);
+    const hasRelevantContext = relevantChunks.length > 0;
+
+    // 4. Build context from chunks if relevant
+    let systemPrompt = '';
+    let userMessage = '';
+
+    if (hasRelevantContext) {
+      const context = relevantChunks
+        .map((c: any, i: number) => `[${i + 1}] (Page ${c.metadata?.page ?? '?'}) ${c.content}`)
+        .join('\n\n');
+
+      systemPrompt = 
+        "You are an AI assistant specializing in human nutrition. " +
+        "You have access to a nutrition textbook and your own general knowledge. " +
+        "When the CONTEXT below contains relevant information, prioritize it and cite sources using [1], [2], etc. with page numbers (e.g., 'p. 46'). " +
+        "If the context doesn't cover the question but you can answer from your general knowledge, provide a helpful response. " +
+        "Be conversational and friendly for greetings and casual questions.";
+
+      userMessage = `QUESTION: ${message}\n\nCONTEXT:\n${context}`;
+    } else {
+      // No relevant context found, use general knowledge
+      systemPrompt = 
+        "You are a helpful AI assistant specializing in human nutrition. " +
+        "Answer questions using your general knowledge about nutrition and health. " +
+        "Be conversational and friendly. For greetings, respond naturally.";
+
+      userMessage = message;
     }
 
-    // 3. Build context from chunks
-    const context = chunks
-      .map((c: any, i: number) => `[${i + 1}] (Page ${c.metadata?.page ?? '?'}) ${c.content}`)
-      .join('\n\n');
-
-    // 4. Generate answer using Gemini
+    // 5. Generate answer using Gemini
     console.log('Generating answer with Gemini...');
-    const systemPrompt = 
-      "You are a RAG assistant for a human nutrition textbook. Answer questions using ONLY the CONTEXT provided below. " +
-      "If the context contains relevant information, synthesize a clear answer from it. " +
-      "If the context doesn't contain enough information to answer the question, say: 'I couldn't find this in the provided document.' " +
-      "ALWAYS cite your sources using [1], [2], etc. and include page numbers (e.g., 'p. 46') when making claims.";
-
-    const userMessage = `QUESTION: ${message}\n\nCONTEXT:\n${context}`;
+    console.log('Has relevant context:', hasRelevantContext);
 
     const geminiResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
