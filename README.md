@@ -34,7 +34,7 @@ This chatbot can answer domain-specific nutrition questions, cite relevant textb
 
 Below is the high-level flow of how the chatbot processes user queries and retrieves knowledge.
 
-![RAG Architecture](.\health-quest-rag\readme_img\rag-architecture.svg)
+![RAG Architecture](.\readme_img\rag-architecture.svg)
 
 ---
 
