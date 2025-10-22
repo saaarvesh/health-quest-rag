@@ -2,7 +2,7 @@
 
 ## 🚀 Live Application
 
-**Published URL**: [Coming Soon - Add your published URL here]
+**Published URL**: https://health-quest-rag.lovable.app/
 
 **Lovable Project**: https://lovable.dev/projects/3775387e-479a-4992-87f1-5437114d6b68
 
