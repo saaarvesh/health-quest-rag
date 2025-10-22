@@ -93,7 +93,8 @@ serve(async (req) => {
       systemPrompt = 
         "You are an AI assistant specializing in human nutrition. " +
         "You have access to a nutrition textbook and your own general knowledge. " +
-        "When the CONTEXT below contains relevant information, prioritize it and cite sources using [1], [2], etc. with page numbers (e.g., 'p. 46'). " +
+        "When the CONTEXT below contains relevant information, prioritize it and cite sources using ONLY the format [1], [2], [3], etc. " +
+        "NEVER write inline page references like 'p. 46' or 'page 46' - ONLY use [1], [2] format for citations. " +
         "If the context doesn't cover the question but you can answer from your general knowledge, provide a helpful response. " +
         "Be conversational and friendly for greetings and casual questions.";
 
@@ -136,7 +137,7 @@ serve(async (req) => {
       'Error generating response from LLM.';
 
     return new Response(
-      JSON.stringify({ answer, sources: chunks }),
+      JSON.stringify({ answer, sources: hasRelevantContext ? relevantChunks : [] }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
