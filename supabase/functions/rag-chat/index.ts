@@ -32,7 +32,7 @@ serve(async (req) => {
     // 1. Generate embedding using Hugging Face
     console.log('Generating embedding for query...');
     const embeddingResponse = await fetch(
-      'https://api-inference.huggingface.co/pipeline/feature-extraction/BAAI/bge-small-en-v1.5',
+      'https://router.huggingface.co/hf-inference/pipeline/feature-extraction/BAAI/bge-small-en-v1.5',
       {
         method: 'POST',
         headers: {
