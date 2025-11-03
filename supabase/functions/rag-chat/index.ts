@@ -29,10 +29,10 @@ serve(async (req) => {
       throw new Error('Missing required environment variables');
     }
 
-    // 1. Generate embedding using Hugging Face
+    // 1. Generate embedding using Hugging Face (migrated to new Inference Providers API)
     console.log('Generating embedding for query...');
     const embeddingResponse = await fetch(
-      'https://router.huggingface.co/models/BAAI/bge-small-en-v1.5',
+      'https://router.huggingface.co/hf-inference/models/BAAI/bge-small-en-v1.5',
       {
         method: 'POST',
         headers: {
