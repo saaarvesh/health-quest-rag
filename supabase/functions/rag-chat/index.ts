@@ -32,23 +32,28 @@ serve(async (req) => {
     // 1. Generate embedding using Hugging Face
     console.log('Generating embedding for query...');
     const embeddingResponse = await fetch(
-      'https://api-inference.huggingface.co/models/BAAI/bge-small-en-v1.5',
+      'https://api-inference.huggingface.co/pipeline/feature-extraction/BAAI/bge-small-en-v1.5',
       {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ inputs: [message], options: { wait_for_model: true } }),
+        body: JSON.stringify({ inputs: message }),
       }
     );
 
     if (!embeddingResponse.ok) {
-      throw new Error(`Embedding generation failed: ${embeddingResponse.status}`);
+      const errorText = await embeddingResponse.text();
+      console.error('HuggingFace API error:', errorText);
+      throw new Error(`Embedding generation failed: ${embeddingResponse.status} - ${errorText}`);
     }
 
     const embeddingData = await embeddingResponse.json();
-    const queryEmbedding = Array.isArray(embeddingData) && embeddingData[0] 
+    console.log('Embedding response type:', typeof embeddingData, 'isArray:', Array.isArray(embeddingData));
+    
+    // The API returns embeddings in format: [[embedding_values]] or [embedding_values]
+    const queryEmbedding = Array.isArray(embeddingData[0]) 
       ? embeddingData[0] 
       : embeddingData;
 
